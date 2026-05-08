@@ -1,0 +1,55 @@
+{
+  "name": "image-optimize",
+  "version": "0.1.0",
+  "description": "Smart image optimization skill for AI agents — auto-routes formats, preserves transparency, handles HEIC and animated GIF.",
+  "type": "module",
+  "bin": {
+    "optimize": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "templates",
+    "references",
+    "SKILL.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^5.3.8",
+    "commander": "^12.1.0",
+    "cosmiconfig": "^9.0.0",
+    "exifreader": "^4.23.7",
+    "file-type": "^19.4.1",
+    "gifsicle": "^7.0.1",
+    "globby": "^14.0.2",
+    "heic-convert": "^2.1.0",
+    "kleur": "^4.1.5",
+    "p-limit": "^6.1.0",
+    "sharp": "^0.33.5",
+    "svgo": "^3.3.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/heic-convert": "^1.2.3",
+    "@types/node": "^20.16.5",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.1"
+  },
+  "engines": {
+    "node": ">=20.10.0"
+  }
+}

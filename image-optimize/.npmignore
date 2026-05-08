@@ -1,0 +1,11 @@
+src
+tests
+node_modules
+*.log
+.DS_Store
+.env*
+coverage
+.tsbuildinfo
+tsconfig.json
+tsup.config.ts
+vitest.config.ts

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Logs & coverage
+*.log
+coverage/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Claude Code (個人本機設定，不該共享)
+.claude/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Local sandbox (test inputs/outputs, scratch space)
+test-images/
+optimized/
+playground/
+scratch/
+
+# Local per-project test configs (not for sharing)
+imgopt.config.mjs
+imgopt.config.js
+imgopt.config.json
