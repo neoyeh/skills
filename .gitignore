@@ -30,6 +30,41 @@ optimized/
 playground/
 scratch/
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Binary media assets: ignored by default.
+#
+# This is an image-compression skill, so any image/video file in the tree is a
+# test fixture, not source code. Treating them as untracked keeps the repo
+# small, prevents accidentally publishing private assets, and avoids confusion
+# about what's "real" code vs. what's a test sample.
+#
+# *** SVG is included on purpose ***
+# Normally SVG is source code (logos, icons in components). But in THIS repo
+# SVG files are also compression test fixtures — same role as JPG/PNG. So we
+# ignore SVG too.
+#
+# If you ever want to commit a specific image (e.g. a screenshot for docs):
+#   git add -f path/to/file.png
+# Or add a `!` exception below for a whole directory.
+# ─────────────────────────────────────────────────────────────────────────────
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.avif
+*.heic
+*.heif
+*.bmp
+*.tif
+*.tiff
+*.svg
+*.mp4
+*.mov
+*.webm
+*.psd
+*.ai
+
 # Local per-project test configs (not for sharing)
 imgopt.config.mjs
 imgopt.config.js

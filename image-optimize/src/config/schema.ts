@@ -17,7 +17,10 @@ const TransformNameFn = z.function()
 const OutputSchema = z.object({
   dir: z.string().default('./optimized'),
   naming: z.string().default('{name}.{ext}'),
-  mirrorStructure: z.boolean().default(false),
+  // Mirror input subdirectory layout into output.
+  // ON by default — most users expect `assets/a/b/c.png → out/a/b/c.jpg`.
+  // Set false to flatten everything into the output root.
+  mirrorStructure: z.boolean().default(true),
   slug: z.union([z.boolean(), SlugRulesSchema]).default(false),
   transformName: TransformNameFn.optional(),
 }).default({});
@@ -115,6 +118,10 @@ export const ConfigSchema = z.object({
     .enum(['light', 'balanced', 'aggressive', 'extreme'])
     .default('balanced'),
 
+  // Default input when no positional CLI argument is given.
+  // CLI args (e.g. `optimize photo.jpg`) always override this.
+  input: z.union([z.string(), z.array(z.string())]).optional(),
+
   output: OutputSchema,
 
   jpg: JpgSchema,
@@ -134,6 +141,10 @@ export const ConfigSchema = z.object({
   skipIfSmallerThan: z
     .union([z.string().regex(/^\d+(\.\d+)?%$/), z.number()])
     .default('5%'),
+
+  // Rsync-style idempotency. When ON, skip a file if its output already exists
+  // and was last modified at or after the input. Override with --force on CLI.
+  skipIfUpToDate: z.boolean().default(true),
 
   rules: z.array(RuleSchema).optional(),
 

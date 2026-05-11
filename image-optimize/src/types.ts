@@ -44,12 +44,14 @@ export interface ProcessedFile {
 export interface SkippedFile {
   input: string;
   /**
-   * Output path when the original file was copied through to the output dir
-   * (e.g., when skipped due to threshold). Absent for dry-run skips.
+   * Output path when the file already has a corresponding output (either
+   * untouched because up-to-date, or copied as-is when savings were below
+   * threshold). Absent for dry-run skips.
    */
   output?: string;
   reason:
     | 'already-smaller-than-threshold'
+    | 'already-up-to-date'
     | 'unsupported-format'
     | 'dry-run'
     | 'no-savings';

@@ -5,6 +5,10 @@ import { deepMerge } from './merge.js';
 import type { ProfileName } from '../types.js';
 
 const explorer = cosmiconfig('imgopt', {
+  // Walk up from CWD until home directory, matching the behaviour users expect
+  // from ESLint/Prettier/Babel/etc. cosmiconfig v9 changed the default to 'none'
+  // (no walk-up), which makes the search useless for nested cwd.
+  searchStrategy: 'global',
   searchPlaces: [
     'imgopt.config.js',
     'imgopt.config.mjs',

@@ -1,3 +1,4 @@
+import kleur from 'kleur';
 import { loadConfig } from '../config/loader.js';
 import { run, type RunOptions } from '../runner.js';
 import type { ProfileName, QualityLevel } from '../types.js';
@@ -8,6 +9,8 @@ export interface OptimizeCommandOptions {
   profile?: ProfileName;
   quality?: QualityLevel;
   output?: string;
+  flat?: boolean;
+  force?: boolean;
   /** Commander: `--config <path>` → string; `--no-config` → false; absent → undefined. */
   config?: string | false;
   dryRun?: boolean;
@@ -20,7 +23,16 @@ export async function runOptimizeCommand(
   const cliOverrides: Record<string, unknown> = {};
   if (options.profile) cliOverrides.profile = options.profile;
   if (options.quality) cliOverrides.quality = options.quality;
-  if (options.output) cliOverrides.output = { dir: options.output };
+
+  // Output overrides — output dir and mirrorStructure live under the same key.
+  const outputOverride: Record<string, unknown> = {};
+  if (options.output) outputOverride.dir = options.output;
+  if (options.flat) outputOverride.mirrorStructure = false;
+  if (Object.keys(outputOverride).length > 0) {
+    cliOverrides.output = outputOverride;
+  }
+
+  if (options.force) cliOverrides.skipIfUpToDate = false;
 
   const noConfig = options.config === false;
   const configPath = typeof options.config === 'string' ? options.config : undefined;
@@ -31,10 +43,26 @@ export async function runOptimizeCommand(
 
   const { config, source } = await loadConfig(loadOpts);
 
+  // Resolve inputs: CLI args win; fall back to config.input.
+  let inputs = options.inputs;
+  if (inputs.length === 0 && config.input) {
+    inputs = Array.isArray(config.input) ? config.input : [config.input];
+  }
+  if (inputs.length === 0) {
+    process.stderr.write(
+      kleur.red('✗') +
+        ' No input specified.\n' +
+        kleur.dim(
+          '  Pass a file/directory as argument, or set `input` in your imgopt config.\n',
+        ),
+    );
+    process.exit(1);
+  }
+
   const runOpts: RunOptions = {
     config,
     configSource: source,
-    inputs: options.inputs,
+    inputs,
   };
   if (options.output !== undefined) runOpts.outputDir = options.output;
   if (options.dryRun !== undefined) runOpts.dryRun = options.dryRun;

@@ -153,6 +153,10 @@ export default {
   //   extreme     >85%     smaller, clearly lossy (thumbnails, avatars)
   quality: '${opts.quality}',
 
+  // Default input when no path is passed on the CLI.
+  // CLI args (e.g. \`optimize photo.jpg\`) always override this.
+  // input: './assets',
+
   output: {
     // Compressed files go here
     dir: '${opts.outputDir}',

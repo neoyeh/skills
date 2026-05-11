@@ -167,6 +167,7 @@ async function processOne(
 ): Promise<OneResult> {
   const inputBuffer = await readFile(file);
   const inputBytes = inputBuffer.length;
+  const inputStat = await stat(file);
 
   const loaded = await loadImage(inputBuffer, file);
 
@@ -194,6 +195,44 @@ async function processOne(
     config,
   );
 
+  // Resolve outputPath up-front. The {hash} placeholder, if used, references
+  // the *input* buffer — this keeps the output path predictable so we can
+  // check for an existing up-to-date output before doing any encoding work.
+  const outputPath = buildOutputPath(
+    outputDir,
+    config.output.naming,
+    {
+      inputPath: file,
+      inputBaseDir: baseDir,
+      outputFormat: route.outputFormat,
+      width: loaded.width,
+      height: loaded.height,
+      contentBuffer: inputBuffer,
+    },
+    config.output.slug,
+    config.output.transformName,
+    config.output.mirrorStructure,
+  );
+
+  // Rsync-style skip: output already exists and is at least as new as input.
+  if (config.skipIfUpToDate && !dryRun) {
+    try {
+      const outputStat = await stat(outputPath);
+      if (outputStat.mtimeMs >= inputStat.mtimeMs) {
+        return {
+          kind: 'skipped',
+          entry: {
+            input: relativeOrAbs(file, baseDir),
+            output: relativeOrAbs(outputPath, baseDir),
+            reason: 'already-up-to-date',
+          },
+        };
+      }
+    } catch {
+      /* output doesn't exist yet — fall through to processing */
+    }
+  }
+
   const pipeline = getPipeline(route.outputFormat);
   const pipelineResult = await pipeline(
     {
@@ -211,24 +250,8 @@ async function processOne(
   const savedBytes = inputBytes - outputBytes;
   const savedRatio = inputBytes === 0 ? 0 : savedBytes / inputBytes;
 
-  const outputPath = buildOutputPath(
-    outputDir,
-    config.output.naming,
-    {
-      inputPath: file,
-      inputBaseDir: baseDir,
-      outputFormat: route.outputFormat,
-      width: loaded.width,
-      height: loaded.height,
-      contentBuffer: pipelineResult.buffer,
-    },
-    config.output.slug,
-    config.output.transformName,
-    config.output.mirrorStructure,
-  );
-
-  // Idempotent skip: if the win is too small, copy the original through so
-  // the output directory still contains a usable file at the expected path.
+  // Threshold skip: if savings too small for same-format re-encode, copy the
+  // original through so the output directory still contains a usable file.
   const minSavings = parseSkipThreshold(config.skipIfSmallerThan, inputBytes);
   if (savedBytes < minSavings && route.outputFormat === loaded.format) {
     if (!dryRun) {

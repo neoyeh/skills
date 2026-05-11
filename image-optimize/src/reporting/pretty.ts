@@ -38,8 +38,14 @@ export function formatPretty(report: RunReport): string {
 
   for (const s of report.skipped) {
     const arrow = s.output ? ` → ${s.output}` : '';
+    const note =
+      s.reason === 'already-up-to-date'
+        ? 'up-to-date, untouched'
+        : s.reason === 'already-smaller-than-threshold'
+          ? 'savings below threshold, copied as-is'
+          : s.reason;
     lines.push(
-      `${kleur.yellow('-')} ${s.input}${arrow}  ${kleur.dim(`(${s.reason}, copied as-is)`)}`,
+      `${kleur.yellow('-')} ${s.input}${arrow}  ${kleur.dim(`(${note})`)}`,
     );
   }
 

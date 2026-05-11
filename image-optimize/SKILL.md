@@ -41,6 +41,8 @@ Inputs can be a file or a directory (recursive). Common flags:
 --profile <name>      web | blog | graphic | archive | preserve | modern  (default: web)
 --quality <level>     light | balanced | aggressive | extreme  (default: balanced)
 --output <dir>        Output directory (default: ./optimized/)
+--flat                Flatten output (override mirrorStructure default)
+--force               Reprocess every file, ignore up-to-date skip
 --dry-run             Print plan, do not write
 --json                Emit machine-readable JSON to stdout
 --config <path>       Override config discovery
@@ -116,7 +118,9 @@ The skill makes safe defaults so the caller does not have to specify every optio
 - **Photo vs graphic detection** — content analysis decides whether AVIF (photographic) or quantized PNG (logos/UI) is the better target.
 - **HEIC dual-engine** — Sharp first (fast native), `heic-convert` fallback (cross-platform reliable).
 - **Animated GIF** — detected by frame count; routed to animated WebP for best size, or kept as GIF when profile demands compatibility.
-- **Idempotent skip** — if compression saves <5%, skips and keeps original (avoids generation loss).
+- **Idempotent skip (rsync-style)** — re-running on the same input is a near-no-op. Files whose output is at least as new as the input are skipped without re-encoding. Use `--force` to override.
+- **Threshold skip** — if a same-format re-encode would save less than `skipIfSmallerThan` (default 5%), the original is copied through as-is (avoids generation loss for lossy formats).
+- **Subdirectory mirror** — output preserves input subdirectory layout by default (`mirrorStructure: true`). Use `--flat` to dump everything into the output root.
 
 Callers do not need to reason about these decisions. Just pass the input.
 

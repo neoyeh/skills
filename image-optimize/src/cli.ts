@@ -35,16 +35,14 @@ program
     ]),
   )
   .option('--output <dir>', 'output directory')
+  .option('--flat', 'flatten output (override mirrorStructure)')
+  .option('--force', 'reprocess every file, ignore up-to-date check')
   .option('--config <path>', 'explicit config file path')
   .option('--no-config', 'ignore config files, use built-in defaults only')
   .option('--dry-run', 'preview without writing files')
   .option('--json', 'emit machine-readable JSON to stdout')
   .action(async (inputs: string[], options) => {
-    if (!inputs || inputs.length === 0) {
-      program.outputHelp();
-      return;
-    }
-    await runOptimizeCommand({ inputs, ...options });
+    await runOptimizeCommand({ inputs: inputs ?? [], ...options });
   });
 
 program
@@ -62,16 +60,21 @@ program
   )
   .option('-y, --yes', 'accept all defaults silently (no prompts)')
   .option('--force', 'overwrite existing config file')
-  .action(async (options) => {
-    await runInitCommand(options);
+  .action(async (options, command) => {
+    // Commander parses `--force` and `--json` at the parent program level when
+    // they appear on the CLI, even though we redeclare them on the subcommand.
+    // Merge parent opts so the subcommand sees inherited flags.
+    const parentOpts = (command.parent?.opts() ?? {}) as Record<string, unknown>;
+    await runInitCommand({ ...parentOpts, ...options });
   });
 
 program
   .command('env')
   .description('Print runtime dependency status')
   .option('--json', 'emit machine-readable JSON')
-  .action(async (options) => {
-    await runEnvCommand(options);
+  .action(async (options, command) => {
+    const parentOpts = (command.parent?.opts() ?? {}) as Record<string, unknown>;
+    await runEnvCommand({ ...parentOpts, ...options });
   });
 
 program.parseAsync().catch((err: unknown) => {
