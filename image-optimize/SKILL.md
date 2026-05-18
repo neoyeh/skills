@@ -124,6 +124,20 @@ The skill makes safe defaults so the caller does not have to specify every optio
 
 Callers do not need to reason about these decisions. Just pass the input.
 
+## On first use — ask the user
+
+Before running `optimize` for the first time in a project, ask these two questions:
+
+**1. 已壓縮的圖片要重壓還是跳過？**
+- **覆蓋**（預設）— 每次都重新壓縮，確保設定變更有套用
+- **跳過** — 輸出比輸入新就不重壓（省時）→ 加 `skipIfUpToDate: true` 到 config
+
+**2. 輸出要保留原本的子目錄結構嗎？**
+- **保留**（預設）— `input/hero/a.png → optimized/hero/a.jpg`
+- **打平** — 全部放到輸出根目錄 → 加 `output: { mirrorStructure: false }` 到 config，或每次用 `--flat`
+
+Built-in defaults: `skipIfUpToDate: false`（always reprocess）、`mirrorStructure: true`（preserve structure）.
+
 ## Init: scaffolding per-project config
 
 When the user wants to give a project its own optimization rules:

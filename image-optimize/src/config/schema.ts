@@ -144,7 +144,7 @@ export const ConfigSchema = z.object({
 
   // Rsync-style idempotency. When ON, skip a file if its output already exists
   // and was last modified at or after the input. Override with --force on CLI.
-  skipIfUpToDate: z.boolean().default(true),
+  skipIfUpToDate: z.boolean().default(false),
 
   rules: z.array(RuleSchema).optional(),
 
