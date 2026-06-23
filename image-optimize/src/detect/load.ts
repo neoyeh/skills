@@ -64,7 +64,18 @@ export async function loadImage(
     }
   }
 
-  const meta = await sharp(workingBuffer, { animated: true }).metadata();
+  let meta = await sharp(workingBuffer, { animated: true }).metadata();
+
+  // Auto-orient still raster images from their EXIF Orientation tag, baking the
+  // rotation into the pixels BEFORE downstream pipelines strip EXIF — otherwise a
+  // phone photo loses its orientation tag and displays sideways. Only re-encode
+  // when the tag actually calls for rotation, so normal images stay a no-op.
+  // Skip animated images: a single toBuffer would flatten/break their frames.
+  if ((meta.pages ?? 1) === 1 && (meta.orientation ?? 1) > 1) {
+    workingBuffer = await sharp(workingBuffer).rotate().toBuffer();
+    // Re-probe so width/height (used for {w}/{h} naming) reflect the rotation.
+    meta = await sharp(workingBuffer).metadata();
+  }
 
   return {
     buffer: workingBuffer,

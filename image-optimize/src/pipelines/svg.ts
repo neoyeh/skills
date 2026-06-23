@@ -10,9 +10,13 @@ export const svgPipeline: Pipeline = async (input, config) => {
       {
         name: 'preset-default',
         params: {
+          // svgo's override type for these param-less plugins is `false | void`:
+          // `false` disables, `undefined` keeps the preset default (enabled). At
+          // runtime `true` and `undefined` are identical (only `false` is special-
+          // cased in invokePlugins), so true→undefined preserves behaviour and typechecks.
           overrides: {
-            removeViewBox: config.svg.removeViewBox,
-            removeTitle: config.svg.removeTitle,
+            removeViewBox: config.svg.removeViewBox ? undefined : false,
+            removeTitle: config.svg.removeTitle ? undefined : false,
           },
         },
       },

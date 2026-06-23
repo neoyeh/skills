@@ -13,6 +13,9 @@ export const jpegPipeline: Pipeline = async (input, config) => {
     const bg = input.flattenWith ?? '#ffffff';
     pipeline = pipeline.flatten({ background: bg });
     transformedBy.push(`flatten:${bg}`);
+    // Surface this: transparency is being baked onto a solid colour, which can
+    // produce an unexpected fringe/box on cut-outs. Don't let it happen silently.
+    warnings.push(`flattened transparency onto ${bg}`);
   }
 
   const quality = effectiveQuality(config.quality, 'jpg', config.jpg.quality);
