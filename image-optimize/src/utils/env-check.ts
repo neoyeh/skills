@@ -1,3 +1,7 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 export interface EnvStatus {
@@ -10,6 +14,13 @@ export interface EnvStatus {
   };
   gifsicle: { available: boolean; path: string | null };
   heicConvert: { available: boolean };
+  /** Resolved paths — useful for AI agents running in non-login shells. */
+  invocation: {
+    nodePath: string;
+    cliPath: string;
+    shimPath: string;
+    shimExists: boolean;
+  };
 }
 
 interface FormatInfo {
@@ -48,6 +59,10 @@ export async function checkEnv(): Promise<EnvStatus> {
 
   const versions = sharp.versions as unknown as Record<string, string>;
 
+  // Both index.js and cli.js are bundled into the same dist/ directory.
+  const cliPath = fileURLToPath(new URL('./cli.js', import.meta.url));
+  const shimPath = join(homedir(), '.local', 'bin', 'optimize');
+
   return {
     sharp: {
       available: true,
@@ -61,6 +76,12 @@ export async function checkEnv(): Promise<EnvStatus> {
       path: gifsiclePath,
     },
     heicConvert: { available: heicConvertAvailable },
+    invocation: {
+      nodePath: process.execPath,
+      cliPath,
+      shimPath,
+      shimExists: existsSync(shimPath),
+    },
   };
 }
 
@@ -79,5 +100,9 @@ export function formatEnvStatus(status: EnvStatus): string {
     `gifsicle:     ${status.gifsicle.available ? `✓ (${status.gifsicle.path})` : '✗'}`,
   );
   lines.push(`heic-convert: ${status.heicConvert.available ? '✓' : '✗'}`);
+  lines.push('');
+  lines.push(`node:         ${status.invocation.nodePath}`);
+  lines.push(`cli:          ${status.invocation.cliPath}`);
+  lines.push(`shim:         ${status.invocation.shimPath} ${status.invocation.shimExists ? '✓' : '✗ (run postinstall)'}`);
   return lines.join('\n');
 }

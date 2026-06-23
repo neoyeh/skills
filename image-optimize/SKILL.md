@@ -29,11 +29,27 @@ Do NOT trigger for:
 
 ## Core invocation
 
-The skill exposes a single CLI command, `optimize`. Use it as:
+The skill exposes a single CLI command, `optimize`. Claude's Bash tool runs
+in a non-login shell — nvm is not loaded, so `optimize` may not be in PATH.
+Always use this three-tier fallback:
 
 ```bash
-optimize <input> [options]
+# 1. Direct (works if PATH includes npm global bin or ~/.local/bin)
+optimize <input> --json
+
+# 2. Shim created by postinstall (always has absolute paths)
+~/.local/bin/optimize <input> --json
+
+# 3. Last resort — get exact paths from env, then invoke directly
+optimize env --json   # or: ~/.local/bin/optimize env --json
+# Output includes invocation.nodePath and invocation.cliPath.
+# Then: <nodePath> <cliPath> <input> --json
 ```
+
+If none of the above work, run `optimize env --json` using any available node
+to get the resolved paths, then construct the invocation manually.
+
+Use it as:
 
 Inputs can be a file or a directory (recursive). Common flags:
 
