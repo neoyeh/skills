@@ -75,8 +75,10 @@ export async function runOptimizeCommand(
     process.stdout.write(formatPretty(report) + '\n');
   }
 
-  // Total failure (every file errored) → non-zero exit so CI can detect it.
-  if (report.errors.length > 0 && report.processed.length === 0) {
-    process.exit(2);
+  // Any failure → non-zero exit so partial failures surface (a missing/corrupt
+  // image must not slip through as "success"). 2 = every file failed, 1 = some
+  // files failed but others succeeded.
+  if (report.errors.length > 0) {
+    process.exit(report.processed.length === 0 ? 2 : 1);
   }
 }

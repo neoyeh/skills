@@ -110,11 +110,15 @@ export async function run(opts: RunOptions): Promise<RunReport> {
   const skipped: SkippedFile[] = [];
   const errors: FailedFile[] = [];
 
+  // Reserve output paths so two inputs that resolve to the same destination
+  // surface as an explicit error instead of one silently overwriting the other.
+  const reserved = new Map<string, string>();
+
   await Promise.all(
     files.map((file) =>
       limit(async () => {
         try {
-          const result = await processOne(file, baseDir, outputDir, config, dryRun);
+          const result = await processOne(file, baseDir, outputDir, config, dryRun, reserved);
           if (result.kind === 'processed') processed.push(result.entry);
           else if (result.kind === 'skipped') skipped.push(result.entry);
         } catch (err) {
@@ -164,6 +168,7 @@ async function processOne(
   outputDir: string,
   config: ResolvedConfig,
   dryRun: boolean,
+  reserved: Map<string, string>,
 ): Promise<OneResult> {
   const inputBuffer = await readFile(file);
   const inputBytes = inputBuffer.length;
@@ -213,6 +218,21 @@ async function processOne(
     config.output.transformName,
     config.output.mirrorStructure,
   );
+
+  // Collision guard: two different inputs resolving to the same output path would
+  // silently overwrite (or, under concurrency, race into a torn file). The get/set
+  // pair runs synchronously here (no await between), so it is atomic on the single
+  // JS thread. Checked even in dryRun so problems surface before a real run.
+  // Re-processing the same input is fine (prior === file).
+  const prior = reserved.get(outputPath);
+  if (prior !== undefined && prior !== file) {
+    throw new Error(
+      `Output path collision: "${relativeOrAbs(file, baseDir)}" and ` +
+        `"${relativeOrAbs(prior, baseDir)}" both map to ` +
+        `"${relativeOrAbs(outputPath, baseDir)}"`,
+    );
+  }
+  reserved.set(outputPath, file);
 
   // Rsync-style skip: output already exists and is at least as new as input.
   if (config.skipIfUpToDate && !dryRun) {
