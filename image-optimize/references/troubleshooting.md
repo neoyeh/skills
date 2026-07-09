@@ -16,7 +16,12 @@ The skill prints which engine failed via `decoded-via:` in `transformedBy[]` —
 
 You picked the `preserve` profile (or `gifRoute.animated: 'preserve'`) on an animated GIF, but `gifsicle` is missing.
 
-Fix: `npm install gifsicle` (or pick a non-`preserve` profile to route animated GIFs through animated WebP, which Sharp can output without external binaries).
+`gifsicle` is an **optional dependency** — it downloads a platform binary during `npm install`. On some networks or platforms (Alpine Linux, corporate proxies) the binary download can fail, which would block the entire install. Making it optional prevents that: if gifsicle fails to install, the rest of the skill still works.
+
+Fix options:
+- **Avoid the issue entirely**: don't use `preserve` profile for animated GIFs — they'll route to animated WebP via Sharp (no external binary needed).
+- **Install gifsicle manually**: `npm install gifsicle` then re-run.
+- **Use ImageMagick as fallback**: `magick input.gif output.gif` then re-run the skill on the result.
 
 ## Sharp fails to install / load
 

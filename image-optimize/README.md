@@ -13,6 +13,17 @@ npm run build
 npm link    # makes `optimize` available globally
 ```
 
+`npm link` runs `postinstall` automatically, which:
+
+1. Creates `~/.local/bin/optimize` — a shim with hardcoded absolute paths so the CLI works in non-login shells (e.g. Claude's Bash tool where nvm isn't loaded).
+2. Symlinks `SKILL.md` into `~/.claude/skills/image-optimize.md` — registers the skill so Claude Code discovers it automatically.
+
+If `~/.local/bin` is not in your PATH, add it:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+```
+
 ## Quickstart
 
 ```bash
